@@ -1,0 +1,100 @@
+% R Notes. Aggregation
+% arostaing@outlook.com
+% March, 2014
+
+---
+
+## Sample data
+
+R and some packages include some sample data. 
+
+```{r sampleData1, results='hide'}
+# Use data() to discover available data sets in each package
+data()
+```
+
+I'll use **mtcars** dataframe.  
+You can see the data's help file typing `? mtcars`.   
+The sample is a data frame with 32 observations on 11 variables.   
+The Format is: 
+
+- [, 1]  mpg         Miles/(US) gallon
+- [, 2]	 cyl	 Number of cylinders
+- [, 3]	 disp	 Displacement (cu.in.)
+- [, 4]	 hp	 Gross horsepower
+- [, 5]	 drat	 Rear axle ratio
+- [, 6]	 wt	 Weight (lb/1000)
+- [, 7]	 qsec	 1/4 mile time
+- [, 8]	 vs	 V/S
+- [, 9]	 am	 Transmission (0 = automatic, 1 = manual)
+- [,10]	 gear	 Number of forward gears
+- [,11]	 carb	 Number of carburetors
+
+Load sample data:
+```{r sampleData2}
+data(mtcars)
+str(mtcars)
+```
+
+---
+
+## Aggregation
+
+### data.frame aggregation
+
+Formulas: 
+
+- Left side represents a variable that we want to make a calculation on 
+- Right side represents one or more variable that we want to group the calculation by.
+
+```{r data.frame.aggregation1}
+# Lets see car's horsepower mean by number of cylinders
+result <- aggregate (hp ~ cyl, mtcars, mean)
+result[order(result$hp, decreasing=TRUE),]
+```
+
+To group the data by more than one variable, add the additional variable to the right side of the formula separating it with a plus sign.
+
+```{r data.frame.aggregation2}
+# Lets see car's horsepower mean by number of cylinders and number of carburetours
+result <- aggregate (hp ~ cyl + carb, mtcars, mean)
+result[order(result$hp, decreasing=TRUE),]
+```
+
+To aggregate more than one variable, they must be combined using *cbind* on the left side of the formula.
+```{r data.frame.aggregation3}
+# Add 1/4 mile time mean
+result <- aggregate (cbind(hp, qsec) ~ cyl + carb, mtcars, mean)
+result[order(result$hp, decreasing=TRUE),]
+```
+
+Do you need using more than one function? `plyr` package helper function make it easy.  
+`each`: Combine multiple functions into a single function returning a named vector of outputs.
+```{r data.frame.aggregation4}
+require(plyr)
+result <- aggregate (cbind(hp, qsec) ~ cyl + carb, mtcars, each(min,max,mean))
+result[order(result$cyl, result$carb, decreasing=TRUE),]
+```
+The result is a named vector of outputs.
+```{r data.frame.aggregation5}
+str (result)
+```
+
+In Our sample, there are two named vectors
+```{r data.frame.aggregation6}
+# Vector with values for results of functions min,max and mean of the hp column
+class(result$hp)
+result$hp
+# Access min results...
+result$hp[,1]
+```
+
+```{r data.frame.aggregation7}
+# Vector with values for results of functions min,max and mean of the hp column
+class(result$qsec)
+result$qsec
+# Access qsec results...
+result$qsec[,1]
+```
+
+---
